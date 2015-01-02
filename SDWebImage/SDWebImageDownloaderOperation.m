@@ -12,13 +12,10 @@
 #import <ImageIO/ImageIO.h>
 #import "SDWebImageManager.h"
 
-<<<<<<< HEAD
+
 #define SDWebimageTimeoutIntervalSec 30
 
-@interface SDWebImageDownloaderOperation ()
-=======
 @interface SDWebImageDownloaderOperation () <NSURLConnectionDataDelegate>
->>>>>>> 21656fad68084e682a18eb638077989351a7cb52
 
 @property (copy, nonatomic) SDWebImageDownloaderProgressBlock progressBlock;
 @property (copy, nonatomic) SDWebImageDownloaderCompletedBlock completedBlock;
@@ -103,26 +100,17 @@
         }
         [[NSNotificationCenter defaultCenter] postNotificationName:SDWebImageDownloadStartNotification object:self];
 
-<<<<<<< HEAD
-        // Make sure to run the runloop in our background thread so it can process downloaded data
-        // Note: we use a timeout to work around an issue with NSURLConnection cancel under iOS 5
-        //       not waking up the runloop, leading to dead threads (see https://github.com/rs/SDWebImage/issues/466)
-        CFRunLoopRunInMode(kCFRunLoopDefaultMode, SDWebimageTimeoutIntervalSec, false);
-        if (!self.isFinished)
-        {
-=======
         if (floor(NSFoundationVersionNumber) <= NSFoundationVersionNumber_iOS_5_1) {
             // Make sure to run the runloop in our background thread so it can process downloaded data
             // Note: we use a timeout to work around an issue with NSURLConnection cancel under iOS 5
             //       not waking up the runloop, leading to dead threads (see https://github.com/rs/SDWebImage/issues/466)
-            CFRunLoopRunInMode(kCFRunLoopDefaultMode, 10, false);
+            CFRunLoopRunInMode(kCFRunLoopDefaultMode, SDWebimageTimeoutIntervalSec, false);
         }
         else {
             CFRunLoopRun();
         }
 
         if (!self.isFinished) {
->>>>>>> 21656fad68084e682a18eb638077989351a7cb52
             [self.connection cancel];
             [self connection:self.connection didFailWithError:[NSError errorWithDomain:NSURLErrorDomain code:NSURLErrorTimedOut userInfo:@{NSURLErrorFailingURLErrorKey : self.request.URL}]];
         }
@@ -210,7 +198,7 @@
 #pragma mark NSURLConnection (delegate)
 
 - (void)connection:(NSURLConnection *)connection didReceiveResponse:(NSURLResponse *)response {
-    
+
     //'304 Not Modified' is an exceptional one
     if ((![response respondsToSelector:@selector(statusCode)] || [((NSHTTPURLResponse *)response) statusCode] < 400) && [((NSHTTPURLResponse *)response) statusCode] != 304) {
         NSInteger expected = response.expectedContentLength > 0 ? (NSInteger)response.expectedContentLength : 0;
@@ -223,7 +211,7 @@
     }
     else {
         NSUInteger code = [((NSHTTPURLResponse *)response) statusCode];
-        
+
         //This is the case when server returns '304 Not Modified'. It means that remote image is not changed.
         //In case of 304 we need just cancel the operation and return cached image from the cache.
         if (code == 304) {
@@ -231,7 +219,7 @@
         } else {
             [self.connection cancel];
         }
-        
+
         [[NSNotificationCenter defaultCenter] postNotificationName:SDWebImageDownloadStopNotification object:nil];
 
         if (self.completedBlock) {
@@ -357,11 +345,11 @@
         self.connection = nil;
         [[NSNotificationCenter defaultCenter] postNotificationName:SDWebImageDownloadStopNotification object:nil];
     }
-    
+
     if (![[NSURLCache sharedURLCache] cachedResponseForRequest:_request]) {
         responseFromCached = NO;
     }
-    
+
     if (completionBlock) {
         if (self.options & SDWebImageDownloaderIgnoreCachedResponse && responseFromCached) {
             completionBlock(nil, nil, nil, YES);
@@ -370,7 +358,7 @@
             UIImage *image = [UIImage sd_imageWithData:self.imageData];
             NSString *key = [[SDWebImageManager sharedManager] cacheKeyForURL:self.request.URL];
             image = [self scaledImageForKey:key image:image];
-            
+
             // Do not force decoding animated GIFs
             if (!image.images) {
                 image = [UIImage decodedImageWithImage:image];
